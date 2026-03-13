@@ -1,35 +1,40 @@
+# 🔧 RTOS-ON-STM32F446RE
 
-# RTOS-ON-STM32F446RE
-
-FreeRTOS projects for STM32F446RET6 using STM32CubeIDE
+> Embedded systems experiments on **STM32F446RET6** using **FreeRTOS** and **STM32CubeIDE**  
+> From bare-metal GPIO to multi-task RTOS scheduling — all in one place.
 
 ---
 
-## 🧠 Hardware
+## 🛠️ Hardware & Tools
 
 | Item | Details |
-|---|---|
+|------|---------|
 | MCU | STM32F446RET6 |
 | Core | ARM Cortex-M4 @ 180 MHz |
 | Flash | 512 KB |
 | RAM | 128 KB |
 | RTOS | FreeRTOS (via STM32CubeIDE middleware) |
 | Toolchain | STM32CubeIDE + STM32CubeMX |
+| Board | Nucleo-F446RE |
 
 ---
 
-## 📁 Experiments
+## 📁 Experiments Overview
 
 | # | Title | Concepts |
 |---|-------|----------|
 | 01 | GPIO Digital Output — LED Blink | GPIO Output, Software Delay |
 | 02 | GPIO Digital Input — Push Button LED Toggle | GPIO Input, Debouncing |
-| 03 | HC-SR04 Ultrasonic Sensor — Distance Classification | GPIO, USART, Sensor Interfacing |
+| 03 | HC-SR04 Ultrasonic Sensor — Distance Classification | GPIO, Timer, USART, Sensor Interfacing |
 | 04 | PWM LED Brightness Control | Timer, PWM, Duty Cycle |
+| 05 | FreeRTOS — LED Blink via Single Task | FreeRTOS, Task Creation, vTaskDelay |
+| 06 | FreeRTOS — Dual Task Priority Analysis | FreeRTOS, Task Priority, Preemption |
 
 ---
 
 ## 🔬 Experiment Details
+
+---
 
 ### 01 — GPIO Digital Output (LED Blink)
 **AIM:** Configure a GPIO pin of STM32F446RE as digital output and verify LED blinking operation using software delay routines.
@@ -71,12 +76,32 @@ FreeRTOS projects for STM32F446RET6 using STM32CubeIDE
 
 ---
 
+### 05 — FreeRTOS LED Blink via Single Task
+**AIM:** Develop a basic FreeRTOS-based project on STM32F446RE in STM32CubeIDE and validate LED blinking using a single RTOS task.
+
+- FreeRTOS enabled via STM32CubeMX middleware
+- Single task created using `osThreadNew()` / `xTaskCreate()`
+- LED toggled inside task using `vTaskDelay()` instead of `HAL_Delay()`
+- Validates basic RTOS task creation and scheduling
+
+---
+
+### 06 — FreeRTOS Dual Task Priority Analysis
+**AIM:** Create and execute two FreeRTOS tasks with different priorities and analyze their effect on LED blinking behaviour.
+
+- Two tasks created with **different priorities**
+- Higher priority task preempts lower priority task
+- LED blinking rates differ based on task priority
+- Demonstrates FreeRTOS **preemptive scheduling** behaviour
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 - [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) v1.13+
 - ST-Link V2 or onboard debugger
-- STM32F446RET6 board (Nucleo-F446RE)
+- STM32F446RET6 Nucleo board
 
 ### Clone the Repo
 ```bash
@@ -85,7 +110,7 @@ git clone https://github.com/kavyabatheja2006/RTOS-ON-STM32F446RE.git
 
 ### Opening a Project in STM32CubeIDE
 1. Open **STM32CubeIDE**
-2. Go to `File → Import → General → Existing Projects into Workspace`
+2. Go to `File` → `Import` → `General` → `Existing Projects into Workspace`
 3. Browse to any experiment folder
 4. Click **Finish**
 5. Build: `Ctrl+B` → Flash & Debug: `F11`
@@ -104,10 +129,12 @@ git clone https://github.com/kavyabatheja2006/RTOS-ON-STM32F446RE.git
 ---
 
 ## 📄 License
+
 MIT License — free to use, modify, and share.
 
 ---
 
 ## 🙋 Author
-**Kavya Batheja**
+
+**Kavya Batheja**  
 GitHub: [@kavyabatheja2006](https://github.com/kavyabatheja2006)
