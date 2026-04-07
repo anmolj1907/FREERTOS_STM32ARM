@@ -29,6 +29,8 @@
 | 04 | PWM LED Brightness Control | Timer, PWM, Duty Cycle |
 | 05 | FreeRTOS — LED Blink via Single Task | FreeRTOS, Task Creation, vTaskDelay |
 | 06 | FreeRTOS — Dual Task Priority Analysis | FreeRTOS, Task Priority, Preemption |
+| 07 | FreeRTOS — Dual Task Priority with SWV ITM Tracing | FreeRTOS, CMSIS-V2, SWV ITM Console, Priority Scheduling |
+| 08 | FreeRTOS — Binary Semaphore with EXTI Button Interrupt | FreeRTOS, Binary Semaphore, EXTI, Deferred Interrupt Processing |
 
 ---
 
@@ -96,6 +98,99 @@
 
 ---
 
+### 07 — FreeRTOS Dual Task Priority with SWV ITM Tracing
+**AIM:** Create and execute two FreeRTOS tasks with different priorities and analyze their effect on LED blinking behaviour using SWV ITM Data Console.
+
+- Two tasks (`LED_1` and `LED_2`) created with **CMSIS-RTOS v2** interface (`CMSIS_V2`)
+- Both tasks use `osDelay(500)` with **different priority levels** assigned via task attributes
+- Priority levels tested: `osPriorityLow`, `osPriorityNormal`, `osPriorityHigh`, `osPriorityRealtime`
+- `printf` retargeted to **SWV ITM Console** via `ITM_SendChar()` for real-time trace output
+- Demonstrates **CPU starvation** of lower-priority tasks as priority difference increases
+- LED blink rates and ITM console message frequency observed on **Port 0**
+
+**Key Code Snippets:**
+```c
+// Retarget printf to ITM
+int _write(int file, char *ptr, int len) {
+    for (int i = 0; i < len; i++) {
+        ITM_SendChar(*ptr++);
+    }
+    return len;
+}
+
+// Task 1 — toggles PA5
+void Task1_function(void *argument) {
+    for(;;) {
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        printf("Task_1 Executing for LED Toggle \n");
+        osDelay(500);
+    }
+}
+
+// Task 2 — toggles PA6
+void StartLED_2(void *argument) {
+    for(;;) {
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
+        printf("Task_2 Executing for LED Toggle \n");
+        osDelay(500);
+    }
+}
+```
+
+---
+
+### 08 — FreeRTOS Binary Semaphore with EXTI Button Interrupt
+**AIM:** Configure an external interrupt (EXTI) for a user button and use a binary semaphore to synchronize an LED control task.
+
+- Implements **Deferred Interrupt Processing** — ISR stays short, heavy logic moved to a task
+- **PC13** configured as EXTI with **Falling Edge Trigger Detection** (NVIC priority: 7)
+- **PA5** configured as GPIO Output for LED
+- Binary semaphore initialized to **0** (unavailable); released by ISR on button press
+- `LED_Control` task blocks on `osSemaphoreAcquire()` and blinks LED **5 times** (250 ms ON/OFF) on each button press
+- `printf` retargeted to **SWV ITM Console** for task execution trace
+
+**Application Flow:**
+```
+Button Press → EXTI ISR → osSemaphoreRelease()
+                              ↓
+                    LED_Control task unblocks
+                              ↓
+                    LED blinks 5× (250 ms each)
+                              ↓
+                    Task blocks again (waits for next press)
+```
+
+**Key Code Snippets:**
+```c
+// LED_Control task — blinks LED 5 times per button press
+void StartDefaultTask(void *argument) {
+    uint8_t i;
+    for(;;) {
+        if (osSemaphoreAcquire(myBinarySem01Handle, 100) == osOK) {
+            printf("Inside LEDControl Task\n");
+            i = 0;
+            while(i < 10) {
+                HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+                HAL_Delay(250);
+                i = i + 1;
+            }
+        }
+    }
+}
+
+// EXTI ISR — releases semaphore on button press
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    osSemaphoreRelease(myBinarySem01Handle);
+}
+```
+
+> ⚠️ **Note:** After every CubeMX code regeneration, manually change the binary semaphore initial count from `1` to `0`:
+> ```c
+> myBinarySem01Handle = osSemaphoreNew(1, 0, &myBinarySem01_attributes);
+> ```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -122,7 +217,8 @@ git clone https://github.com/kavyabatheja2006/RTOS-ON-STM32F446RE.git
 | Pin | Function |
 |-----|----------|
 | PA5 | Onboard LED (LD2) |
-| PC13 | User Push Button |
+| PA6 | External LED (Exp 07) |
+| PC13 | User Push Button / EXTI Input |
 | PA2 | USART2 TX (Serial Monitor) |
 | PA3 | USART2 RX |
 
