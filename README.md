@@ -31,6 +31,7 @@
 | 06 | FreeRTOS — Dual Task Priority Analysis | FreeRTOS, Task Priority, Preemption |
 | 07 | FreeRTOS — Dual Task Priority with SWV ITM Tracing | FreeRTOS, CMSIS-V2, SWV ITM Console, Priority Scheduling |
 | 08 | FreeRTOS — Binary Semaphore with EXTI Button Interrupt | FreeRTOS, Binary Semaphore, EXTI, Deferred Interrupt Processing |
+| 09 | FreeRTOS — Inter-Task Communication via Queue | FreeRTOS, Queue, FIFO, Sensor Data Transfer |
 
 ---
 
@@ -188,6 +189,29 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 > ```c
 > myBinarySem01Handle = osSemaphoreNew(1, 0, &myBinarySem01_attributes);
 > ```
+
+---
+
+### 09 — FreeRTOS Inter-Task Communication via Queue
+**AIM:** Implement inter-task communication using a FreeRTOS queue where one task generates or acquires sensor data and another task receives the data.
+
+- FreeRTOS **Queue** used as a thread-safe **FIFO buffer** between tasks
+- **Producer task** reads sensor data (e.g. ultrasonic HC-SR04) and sends to queue
+- **Consumer task** receives data from queue and processes/displays it via SWV ITM Console
+- Queue uses **Copy by Value** — data safely copied into queue memory, no shared variable risks
+- **Blocking behaviour:**
+  - Consumer blocks when queue is empty — zero CPU cycles consumed
+  - Unblocks instantly when producer sends data
+- Prevents **race conditions** — no two tasks access the same memory simultaneously
+- Demonstrates the difference between semaphore (signal only) vs queue (signal + data)
+
+**Key Concepts:**
+```
+Producer Task                    Queue (FIFO)             Consumer Task
+─────────────                    ────────────             ─────────────
+Read sensor data   ──Send──►  [ slot ][ slot ]  ──Receive──►  Process & print
+osDelay()                                                   osDelay()
+```
 
 ---
 
