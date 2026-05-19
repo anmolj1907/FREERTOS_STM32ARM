@@ -1,0 +1,27 @@
+# STM32CubeIDE generated files
+Debug/
+Release/
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+
+# IDE files
+.settings/
+.cproject
+.project
+
+# Eclipse / STM32CubeIDE workspace files
+.metadata/
+RemoteSystemsTempFiles/
+Servers/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
